@@ -147,6 +147,64 @@ GitHubを使うと、バージョン管理しながら配布できます。
     *   Release ページにダウンロードリンクが表示されます。
     *   このURLを友達に送れば、誰でもダウンロードして遊べます！
 
+#### 📦 ファイルサイズの制限について
+
+GitHub Releases では **1ファイルあたり最大 2GB** の制限があります。
+
+もし EXE ファイルがこのサイズを超えてしまう場合は、以下の対処法があります：
+
+##### 方法1: ZIP圧縮で容量を減らす
+
+PyInstallerで生成されたEXEファイルは、ZIP圧縮することで容量を削減できる場合があります。
+
+```bash
+# Windowsの場合、エクスプローラーでファイルを右クリック
+# 「送る」→「圧縮(zip形式)フォルダー」を選択
+
+# PowerShellを使う場合
+Compress-Archive -Path game.exe -DestinationPath game.zip
+```
+
+ZIPファイルをReleaseにアップロードし、ユーザーには解凍してから使ってもらいます。
+
+##### 方法2: Git LFS（Large File Storage）を使う
+
+非常に大きなファイル（2GBを超える場合）は、**Git LFS** を使って管理できます。
+Git LFS を使うと **最大 5GB** までのファイルを扱えます。
+
+**使い方**:
+
+1.  **Git LFS をインストール**:
+    ```bash
+    # Windowsの場合、Git for Windows に同梱されています
+    # または https://git-lfs.github.com/ からダウンロード
+    ```
+
+2.  **リポジトリで LFS を有効化**:
+    ```bash
+    git lfs install
+    ```
+
+3.  **管理したいファイル形式を指定**:
+    ```bash
+    # EXEファイルやZIPファイルをLFSで管理
+    git lfs track "*.exe"
+    git lfs track "*.zip"
+    ```
+
+4.  **変更をコミット & プッシュ**:
+    ```bash
+    git add .gitattributes
+    git add game.zip
+    git commit -m "Add large ZIP with LFS"
+    git push origin main
+    ```
+
+5.  **Releaseを作成**:
+    通常通り Release を作成すると、LFS で管理されたファイルも正しくダウンロードできます。
+
+⚠️ **注意**: GitHub の無料プランでは、LFS のストレージは **1GB まで** で、帯域幅は **月 1GB まで** です。超過する場合は有料プランの検討が必要です。
+
 ### 方法B: itch.io で公開（一番簡単！おすすめ）
 
 世界中のインディーゲームが集まるサイトです。「自分のゲームサイト」が作れます。
