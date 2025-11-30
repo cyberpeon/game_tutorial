@@ -1,3 +1,4 @@
+import asyncio
 import pygame
 import sys
 import os
@@ -130,21 +131,21 @@ class Item:
         draw_rect = self.rect.inflate(pulse, pulse)
         pygame.draw.circle(surface, YELLOW, draw_rect.center, draw_rect.width // 2)
 
-def process_image(file_path):
-    print(f"Processing {file_path}...")
-    try:
-        image = pygame.image.load(file_path).convert()
-        colorkey = image.get_at((0, 0))
-        image.set_colorkey(colorkey)
-        print("Done!")
-        if image.get_width() > 80 or image.get_height() > 80:
-            scale = 80 / max(image.get_width(), image.get_height())
-            new_size = (int(image.get_width() * scale), int(image.get_height() * scale))
-            image = pygame.transform.smoothscale(image, new_size)
-        return image
-    except Exception as e:
-        print(f"Error processing image: {e}")
-        return None
+def create_default_character():
+    """Create a simple default character surface"""
+    surface = pygame.Surface((60, 60))
+    surface.fill(WHITE)
+    surface.set_colorkey(WHITE)
+    
+    # Draw a simple stick figure
+    pygame.draw.circle(surface, BLUE, (30, 15), 10)  # Head
+    pygame.draw.line(surface, BLUE, (30, 25), (30, 45), 3)  # Body
+    pygame.draw.line(surface, BLUE, (30, 30), (20, 35), 2)  # Left arm
+    pygame.draw.line(surface, BLUE, (30, 30), (40, 35), 2)  # Right arm
+    pygame.draw.line(surface, BLUE, (30, 45), (20, 55), 3)  # Left leg
+    pygame.draw.line(surface, BLUE, (30, 45), (40, 55), 3)  # Right leg
+    
+    return surface
 
 def reset_game():
     global enemies, items, score, level, char_rect
@@ -155,7 +156,7 @@ def reset_game():
     if char_rect:
         char_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
-def main():
+async def main():
     global char_image, char_rect, game_state, score, level, enemies, items
     global enemy_spawn_timer, item_spawn_timer
     
@@ -163,33 +164,16 @@ def main():
     font = pygame.font.SysFont(None, 36)
     title_font = pygame.font.SysFont(None, 64)
     
-    default_img = "sample_character.png"
-    if os.path.exists(default_img):
-        SCREEN.fill(WHITE)
-        loading_text = font.render("Loading...", True, BLACK)
-        text_rect = loading_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-        SCREEN.blit(loading_text, text_rect)
-        pygame.display.flip()
-        pygame.event.pump()
-        
-        char_image = process_image(default_img)
-        if char_image:
-            char_rect = char_image.get_rect()
-            char_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+    # Create default character
+    char_image = create_default_character()
+    char_rect = char_image.get_rect()
+    char_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
     running = True
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
-            elif event.type == pygame.DROPFILE:
-                file_path = event.file
-                print(f"File dropped: {file_path}")
-                new_image = process_image(file_path)
-                if new_image:
-                    char_image = new_image
-                    char_rect = char_image.get_rect()
-                    char_rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
             
             if game_state == STATE_TITLE or game_state == STATE_GAMEOVER:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
@@ -269,10 +253,6 @@ def main():
             SCREEN.blit(title_text, title_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 60)))
             SCREEN.blit(start_text, start_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 20)))
             SCREEN.blit(instr_text, instr_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 60)))
-            
-            if not char_image:
-                warn_text = font.render("Drop an image file first!", True, RED)
-                SCREEN.blit(warn_text, warn_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 120)))
 
         elif game_state == STATE_PLAYING:
             for item in items:
@@ -299,9 +279,10 @@ def main():
 
         pygame.display.flip()
         clock.tick(60)
+        await asyncio.sleep(0)  # Essential for pygbag
 
     pygame.quit()
     sys.exit()
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

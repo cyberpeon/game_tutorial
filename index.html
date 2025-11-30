@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pygame Games - Playable in Browser</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            animation: fadeInDown 1s ease;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease 0.3s backwards;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: fadeIn 1s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .game-card h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #fff;
+        }
+
+        .game-card p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .game-card ul {
+            list-style: none;
+            margin-bottom: 25px;
+            opacity: 0.85;
+        }
+
+        .game-card ul li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .game-card ul li::before {
+            content: '🎮';
+            position: absolute;
+            left: 0;
+        }
+
+        .play-button {
+            display: inline-block;
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            opacity: 0.8;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.5em;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 Pygame Games Collection</h1>
+            <p class="subtitle">Playable in your browser!</p>
+        </header>
+
+        <div class="games-grid">
+            <div class="game-card">
+                <h2>⚡ Ultimate Dodge!</h2>
+                <p>Dodge enemies and aim for the high score!</p>
+                <ul>
+                    <li>Use Arrow Keys to move</li>
+                    <li>Difficulty increases with levels</li>
+                    <li>Avoid chasing enemies</li>
+                    <li>Collect bonus items</li>
+                </ul>
+                <a href="dodge/index.html" class="play-button">Play Now →</a>
+            </div>
+
+            <div class="game-card">
+                <h2>👊 Fighting Game</h2>
+                <p>Battle through 5 stages and defeat the boss!</p>
+                <ul>
+                    <li>Punch, Kick, and Slide attacks</li>
+                    <li>Enemy AI gets stronger each level</li>
+                    <li>Challenge the Final Boss</li>
+                    <li>Exciting battle action</li>
+                </ul>
+                <a href="fighting/index.html" class="play-button">Play Now →</a>
+            </div>
+        </div>
+
+        <footer>
+            <p>Powered by Pygame & Pygbag | Made with ❤️</p>
+        </footer>
+    </div>
+</body>
+
+</html>
