@@ -87,39 +87,48 @@ class Fighter:
         self.is_punching = False
         self.is_kicking = False
         self.is_sliding = False
+        self.is_guarding = False
         
         self.action_timer = 0
         self.hit_cooldown = 0
         self.damage_flash = 0
         
     def move(self, direction):
-        if not self.is_punching and not self.is_kicking:
+        if not self.is_punching and not self.is_kicking and not self.is_guarding:
             if not self.is_sliding:
                 self.vel_x = direction * MOVE_SPEED
     
     def jump(self):
-        if not self.is_jumping and not self.is_sliding:
+        if not self.is_jumping and not self.is_sliding and not self.is_guarding:
             self.vel_y = JUMP_POWER
             self.is_jumping = True
     
     def punch(self):
-        if not self.is_punching and not self.is_kicking and not self.is_sliding:
+        if not self.is_punching and not self.is_kicking and not self.is_sliding and not self.is_guarding:
             self.is_punching = True
             self.action_timer = 20
             self.vel_x = 0
     
     def kick(self):
-        if not self.is_kicking and not self.is_punching and not self.is_sliding:
+        if not self.is_kicking and not self.is_punching and not self.is_sliding and not self.is_guarding:
             self.is_kicking = True
             self.action_timer = 30
             self.vel_x = 0
             
     def slide(self):
-        if not self.is_sliding and not self.is_jumping and not self.is_punching and not self.is_kicking:
+        if not self.is_sliding and not self.is_jumping and not self.is_punching and not self.is_kicking and not self.is_guarding:
             self.is_sliding = True
             self.action_timer = 40
             speed = 12
             self.vel_x = speed if self.facing_right else -speed
+
+    def guard(self, active):
+        if active:
+            if not self.is_jumping and not self.is_punching and not self.is_kicking and not self.is_sliding:
+                self.is_guarding = True
+                self.vel_x = 0
+        else:
+            self.is_guarding = False
     
     def update(self, opponent):
         if not self.is_sliding:
@@ -189,12 +198,20 @@ class Fighter:
     
     def take_damage(self, amount):
         if self.hit_cooldown == 0:
+            if self.is_guarding:
+                amount = int(amount * 0.2) # 80% damage reduction
+                self.hit_cooldown = 20 # Shorter cooldown on block
+            else:
+                self.hit_cooldown = 40
+                
             self.health -= amount
             self.health = max(0, self.health)
-            self.hit_cooldown = 40
             self.damage_flash = 10
             
             knockback = -10 if self.facing_right else 10
+            if self.is_guarding:
+                knockback //= 2 # Less knockback on block
+                
             self.vel_x = knockback
             self.vel_y = -5
             
@@ -231,7 +248,15 @@ class Fighter:
         arm_color = self.detail_color
         shoulder_y = draw_y - 70
         
-        if self.is_punching:
+        if self.is_guarding:
+            # Guard pose: Arms up in front
+            if self.facing_right:
+                pygame.draw.line(screen, arm_color, (draw_x, shoulder_y), (draw_x + 20, shoulder_y - 20), 8)
+                pygame.draw.line(screen, arm_color, (draw_x + 20, shoulder_y - 20), (draw_x + 20, shoulder_y + 10), 8)
+            else:
+                pygame.draw.line(screen, arm_color, (draw_x, shoulder_y), (draw_x - 20, shoulder_y - 20), 8)
+                pygame.draw.line(screen, arm_color, (draw_x - 20, shoulder_y - 20), (draw_x - 20, shoulder_y + 10), 8)
+        elif self.is_punching:
             if self.facing_right:
                 pygame.draw.line(screen, arm_color, (draw_x, shoulder_y), (draw_x + 40, shoulder_y), 8)
             else:
@@ -292,6 +317,9 @@ class EnemyAI:
                 if self.level >= 3 and random.random() < 0.3:
                     self.state = "jump"
                     self.timer = 20
+                elif self.level >= 2 and random.random() < 0.3:
+                    self.state = "guard"
+                    self.timer = 30
                 else:
                     self.state = "retreat" if random.random() < 0.5 else "wait"
                     self.timer = 20
@@ -308,6 +336,10 @@ class EnemyAI:
             self.timer = 40
             
     def _execute_action(self, player):
+        # Reset guard state unless in guard state
+        if self.state != "guard":
+            self.fighter.guard(False)
+
         if self.state == "chase":
             if player.x > self.fighter.x:
                 self.fighter.move(1)
@@ -327,6 +359,9 @@ class EnemyAI:
         elif self.state == "slide":
             self.fighter.slide()
             self.state = "wait"
+        
+        elif self.state == "guard":
+            self.fighter.guard(True)
             
         elif self.state == "attack":
             if not self.fighter.is_punching and not self.fighter.is_kicking:
@@ -380,12 +415,18 @@ class Game:
         if keys[pygame.K_w] or keys[pygame.K_UP]:
             self.player.jump()
             
-        if keys[pygame.K_s] or keys[pygame.K_DOWN] or keys[pygame.K_z]:
+        if keys[pygame.K_z]:
             self.player.punch()
         if keys[pygame.K_x]:
             self.player.kick()
         if keys[pygame.K_SPACE]:
             self.player.slide()
+            
+        # Guard input
+        if keys[pygame.K_s] or keys[pygame.K_DOWN]:
+            self.player.guard(True)
+        else:
+            self.player.guard(False)
             
         if keys[pygame.K_r] and (self.game_over or self.game_cleared):
             self.current_level = 1
@@ -491,7 +532,7 @@ class Game:
         stage_text = font_medium.render(f"STAGE {self.current_level}/5", True, BLACK)
         screen.blit(stage_text, (SCREEN_WIDTH//2 - stage_text.get_width()//2, 80))
         
-        guide = font_small.render("Move:Arrow  Attack:Z/X  Slide:Space", True, WHITE)
+        guide = font_small.render("Move:Arrow  Attack:Z/X  Guard:Down  Slide:Space", True, WHITE)
         screen.blit(guide, (20, SCREEN_HEIGHT - 40))
 
     def draw_game_over(self):
